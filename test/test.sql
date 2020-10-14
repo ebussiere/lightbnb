@@ -1,0 +1,15 @@
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR(255),
+  birth_year SMALLINT ,
+  member_since TIMESTAMP
+);
+
+ALTER TABLE users
+ADD COLUMN name VARCHAR(255) NOT NULL,
+ADD COLUMN birth_year SMALLINT NOT NULL,
+ADD COLUMN member_since TIMESTAMP NOT NULL;
+
+ALTER TABLE users 
+ALTER COLUMN member_since
+SET DEFAULT Now();
