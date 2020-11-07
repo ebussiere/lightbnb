@@ -74,16 +74,67 @@ exports.getAllReservations = getAllReservations;
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
-const getAllProperties = function(options, limit = 10) {
-  return db.query(`SELECT * FROM properties
-  LIMIT $1`
-    , [limit])
-    .then((res) => {
-      return res.rows;
-    });
+const getAllProperties = function(options, limit = 100) {
+  console.log(options.params);
+  let minCost = parseInt(options.query.minimum_price_per_night);
+  let maxCost = parseInt(options.query.maximum_price_per_night);
+  let minRating = parseInt(options.query.rating);
+  //console.log(minCost, maxCost, minRating);
+
+  // 1
+  const queryParams = [];
+  // 2
+  let queryString = `
+  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id `;
+
+  // 3
+  if (options.query.city) {
+    queryParams.push(`%${options.query.city}%`);
+    queryString += ` WHERE city LIKE $${queryParams.length} `;
+  }
+
+  // if (minCost) {
+  //   queryParams.push(`${minCost}`);
+  //   queryString += queryParams.length ? `AND` : `WHERE`;
+  //   queryString += ` cost_per_night >= $${queryParams.length} `;
+  // }
+
+  // if (maxCost) {
+  //   queryParams.push(`${maxCost}`);
+  //   queryString += queryParams.length ? `AND` : `WHERE`;
+  //   queryString += ` cost_per_night <= $${queryParams.length} `;
+  // }
+
+  // if (minRating) {
+  //   queryParams.push(`${minRating}`);
+  //   queryString += queryParams.length ? `AND` : `WHERE`;
+  //   queryString += ` average_rating >= $${queryParams.length} `;
+  // }
+
+
+  // 4
+  queryParams.push(limit);
+  //console.log(queryParams);
+  queryString += `
+  GROUP BY properties.id
+  ORDER BY cost_per_night
+  LIMIT $${queryParams.length};
+  `;
+
+  // 5
+
+
+  //console.log(queryString );
+
+  // 6
+
+  console.log(queryString);
+  return db.query(queryString, queryParams)
+    .then(res => res.rows);
 };
 exports.getAllProperties = getAllProperties;
-
 
 /**
  * Add a property to the database
